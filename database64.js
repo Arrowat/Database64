@@ -8,16 +8,16 @@
     • Server: fetch + decode
   ------------------------------------------------------------------
   Direct Reference
-  Global CDN: https://cdn.database64.com/lib/1.0/database64.js
+  Global CDN: https://cdn.database64.com/lib/2.0/database64.js
   ------------------------------------------------------------------
 
     ***************************************************************************************
-    Database64.js Protocol License — Version 1.0
+    Database64.js Protocol License — Version 2.0
 
     Database64.js — Database-less Publishing Protocol
-    Version 1.0 — Released 12/07/2025 at database64.com
+    Version 2.0 — Released 8/16/2026 at database64.com
 
-    Copyright (c) 2025 Melvin Hernandez, Arrowat LLC
+    Copyright (c) 2025 - 2026 Melvin Hernandez, Arrowat LLC
     https://arrowat.com/melvin | https://www.arrowatllc.com
 
     Permission Declaration:
@@ -70,7 +70,7 @@ class Database64 {
                         (async () => {
                             this[varName] = fetch(source)
                                 .then(res => res.text())
-                                .then(text => loader.frbs64(text)).then(text => this.textContent = text);                              
+                                .then(text => loader.frbs64(text)).then(text => this.textContent = text);
                         })();
                     }
 
@@ -86,11 +86,11 @@ class Database64 {
                     }
                     else if (source && contentType === "json64") {
                         try {
-                         
+
                             (async () => {
-                            this[varName] = fetch(source)
-                                .then(res => res.text())
-                                .then(text => JSON.parse(loader.frbs64(text)));
+                                this[varName] = fetch(source)
+                                    .then(res => res.text())
+                                    .then(text => JSON.parse(loader.frbs64(text)));
                             })();
 
 
@@ -106,30 +106,30 @@ class Database64 {
                                 .then(text => text).then(text => this.textContent = text);
                         })();
                     }
-                    else if (contentType === "html") {                       
+                    else if (contentType === "html") {
                         (async () => {
                             this[varName] = fetch(source)
                                 .then(res => res.text())
                                 .then(html => html)
                                 .then(html => this.innerHTML = html)
                                 .catch(err => { this.innerHTML = "Cannot load the requested source" });
-                            })();               
+                        })();
                     }
                     else if (contentType === "frame") {
                         const iframe = document.createElement("iframe");
                         const iframeAllow = this.getAttribute("allow");
                         const iframeSandbox = this.getAttribute("sandbox");
                         const iframeTitle = this.getAttribute("title");
-                        iframe.src = source;                    
+                        iframe.src = source;
                         if (style) { iframe.setAttribute("style", style); }
                         if (cssClass) { iframe.setAttribute("class", cssClass); }
-                        if (iframeAllow) {iframe.setAttribute("allow", iframeAllow);}
-                        if (iframeSandbox) { iframe.setAttribute("sandbox", iframeSandbox); }    
-                        if (iframeTitle) { iframe.setAttribute("title", iframeTitle); } 
+                        if (iframeAllow) { iframe.setAttribute("allow", iframeAllow); }
+                        if (iframeSandbox) { iframe.setAttribute("sandbox", iframeSandbox); }
+                        if (iframeTitle) { iframe.setAttribute("title", iframeTitle); }
                         this.style = "";
                         this.classList = "";
                         this.innerHTML = "";
-                        this.appendChild(iframe);                     
+                        this.appendChild(iframe);
                     }
                     else if (contentType === "image64") {
                         const res = await fetch(source);
@@ -189,11 +189,11 @@ class Database64 {
                         this.innerHTML = payload;
                         this[varName] = payload;
                     } else if (contentType === "html") {
-                        
+
                         payload = source;
                         this.innerHTML = payload;
                         this[varName] = payload;
-                       
+
                     }
                     else if (contentType === "frame") {
                         const iframe = document.createElement("iframe");
@@ -245,7 +245,7 @@ class Database64 {
             this.runat = runat;
         }
         /**
-          * 
+          * Decodes from base64 URL-safe
           * @param {string} bs64str
          */
         frbs64(bs64str) {
@@ -266,6 +266,22 @@ class Database64 {
                 throw new ('base64 is invalid');
             }
         }
+        /**
+         * Encodes string to base64 URL‑safe
+         * @param {string} str
+         */
+        tbs64(str) {
+            if (typeof str !== "string") {
+                throw new TypeError("Required string type")
+            }
+            try {
+                const utf8Text = unescape(encodeURIComponent(str));
+                let base64 = btoa(utf8Text);
+                return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            } catch (err) {
+                throw new ('string is invalid');
+            }
+        }
         // Open
         /**
          * 
@@ -273,7 +289,7 @@ class Database64 {
          * @param {string} contentType
          * @returns returns json Promise
          */
-        async open(source, contentType, runat) {
+        async #open(source, contentType, runat) {
             let payload = "";
             if (runat === "server") {
                 if (source && contentType === "json") {
@@ -381,7 +397,7 @@ class Database64 {
 
                 if (source && contentType === "html") {
                     try {
-                     
+
                         payload = source
                     } catch (err) {
                         console.error("Cannot load the requested source", err);
@@ -396,7 +412,7 @@ class Database64 {
                     } catch (err) {
                         console.error("Database64 failed:", err);
                     }
-           
+
                 }
 
                 if (source && contentType === "base64") {
@@ -416,8 +432,65 @@ class Database64 {
             }
             return payload;
         }
+        /**
+         * Opens the source and returns the content type from client or server.
+         * @returns
+         */
         async Open() {
-            return await this.open(this.source, this.contentType, this.runat);
+            return await this.#open(this.source, this.contentType, this.runat);
+        }
+        /**
+         * Creates a URL‑safe Base64 string from any text source
+         * @returns
+         */
+        Create() {
+            return this.tbs64(this.source);
+        }
+    }
+    static Tools = class {
+        constructor() { }
+        /**
+         * Decodes from Base64 to Plain-Text
+         * @param {Base64String} str
+         * @returns {PlainTextString}
+         */
+        Decode(str) {
+            if (typeof str !== "string") {
+                throw new TypeError("Required string type");
+            }
+            let b64 = str;
+            const pad = b64.length % 4;
+            if (pad) {
+                b64 += "=".repeat(4 - pad);
+            }
+            try {
+                const binary = atob(b64);
+                if (typeof TextDecoder !== "undefined") {
+                    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+                    const decoder = new TextDecoder("utf-8", { fatal: false });
+                    return decoder.decode(bytes);
+                }
+                const encPercent = binary.split("").map(c => "%" + c.charCodeAt(0).toString(16).padStart(2, "0")).join("");
+                return decodeURIComponent(encPercent);
+            } catch (err) {
+                throw new Error("base64 is invalid");
+            }
+        }
+        /**
+         * Encodes Plain-Text to Base64
+         * @param {PlainTextString} str
+         * @returns {Base64String}
+         */
+        Encode(str) {
+            if (typeof str !== "string") {
+                throw new TypeError("Required string type");
+            }
+            try {
+                const utf8 = unescape(encodeURIComponent(str));
+                return btoa(utf8);
+            } catch (err) {
+                throw new Error("string is invalid");
+            }
         }
     }
 }
