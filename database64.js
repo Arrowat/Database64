@@ -492,6 +492,51 @@ class Database64 {
                 throw new Error("string is invalid");
             }
         }
+
+        /**
+          * Decodes from base64 URL-safe
+          * @param {Base64URLString} bs64urlstr
+          * @returns {PlainTextString}
+         */
+        DecodeURL(bs64urlstr) {
+            if (typeof bs64urlstr !== "string") {
+                throw new TypeError("Required string type");
+            }
+            let b64 = bs64urlstr.replace(/-/g, '+').replace(/_/g, '/');
+            const pad = b64.length % 4;
+            if (pad) {
+                b64 += "=".repeat(4 - pad);
+            }
+            try {
+                const binary = atob(b64);
+                if (typeof TextDecoder !== "undefined") {
+                    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+                    const decoder = new TextDecoder("utf-8", { fatal: false });
+                    return decoder.decode(bytes);
+                }
+                const encPercent = binary.split("").map(c => "%" + c.charCodeAt(0).toString(16).padStart(2, "0")).join("");
+                return decodeURIComponent(encPercent);
+            } catch (err) {
+                throw new Error("base64 is invalid");
+            }
+        }
+        /**
+         * Encodes string to base64 URL‑safe
+         * @param {PlainTextString} str
+         * @returns {Base64URLString}
+         */
+        EncodeURL(str) {
+            if (typeof str !== "string") {
+                throw new TypeError("Required string type")
+            }
+            try {
+                const utf8Text = unescape(encodeURIComponent(str));
+                let base64 = btoa(utf8Text);
+                return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            } catch (err) {
+                throw new ('string is invalid');
+            }
+        }
     }
 }
 customElements.define("database-64", Database64.Database64);
